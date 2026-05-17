@@ -1,0 +1,16 @@
+# frontend
+frontend/node_modules
+frontend/dist
+frontend/.env
+
+# backend
+backend/node_modules
+backend/dist
+backend/.env
+
+# logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
