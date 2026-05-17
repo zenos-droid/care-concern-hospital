@@ -62,10 +62,10 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
     // Parse Date day
     const dateObj = new Date(bookingDate);
     const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" }); // "Monday", "Tuesday", etc.
-    const isAvailable = selectedDoctor.days.includes(dayName);
+    const isAvailable = (selectedDoctor.days || []).includes(dayName);
 
     if (!isAvailable) {
-      return `Warning: ${selectedDoctor.name} normally chambers on ${selectedDoctor.days.join(", ")}. Checking with reception is advised if choosing a ${dayName}.`;
+      return `Warning: ${selectedDoctor.name} normally chambers on ${(selectedDoctor.days || []).join(", ")}. Checking with reception is advised if choosing a ${dayName}.`;
     }
     return null;
   }, [bookingDate, selectedDoctor]);
@@ -288,7 +288,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
                   className="w-full px-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-slate-700"
                 >
                   <option value="">-- Choose Hour Option --</option>
-                  {selectedDoctor ? selectedDoctor.slots.map((sl, idx) => (
+                  {selectedDoctor ? (selectedDoctor.slots || []).map((sl, idx) => (
                     <option key={idx} value={sl}>{sl}</option>
                   )) : (
                     <>
