@@ -36,7 +36,7 @@ export const createApp = () => {
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(cors({
     origin: (origin, callback) => {
-      if (!origin || corsOrigins.includes(origin)) return callback(null, true);
+      if (!origin || corsOrigins.includes(origin) || origin.endsWith(".vercel.app")) return callback(null, true);
       return callback(new Error("CORS origin denied"));
     },
     credentials: true
