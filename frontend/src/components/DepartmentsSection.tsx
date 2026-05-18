@@ -32,8 +32,9 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
   };
 
   const selectedDeptObj = useMemo(() => {
-    return departments.find(d => d.id === activeDeptId) || departments[0];
+    return departments.find(d => d.id === activeDeptId) || departments?.[0];
   }, [activeDeptId, departments]);
+  if (!selectedDeptObj) return null;
 
   // Doctors belonging to this department
   const filteredDocs = useMemo(() => {
@@ -93,7 +94,7 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-sky-500 text-white rounded-2xl flex items-center justify-center mb-1">
-                  {getIcon(selectedDeptObj.iconName, "w-6 h-6")}
+                  {getIcon(selectedDeptObj?.iconName, "w-6 h-6")}
                 </div>
                 <div>
                   <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 leading-none">
