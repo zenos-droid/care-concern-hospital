@@ -17,6 +17,9 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
 
   // Icon map to resolve dynamic key strings
   const getIcon = (iconName: string, className: string) => {
+    if (!iconName) {
+      return <Stethoscope className={className} />;
+    }
     switch (iconName) {
       case "HeartPulse": return <HeartPulse className={className} />;
       case "Activity": return <Activity className={className} />;

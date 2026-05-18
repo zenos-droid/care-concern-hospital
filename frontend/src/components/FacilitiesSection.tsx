@@ -1,8 +1,11 @@
-import { Shield, Activity, Flame, Users, Clock, Zap, Cpu, MapPin } from "lucide-react";
+import { Shield, Activity, Flame, Users, Clock, Zap, Cpu, MapPin, Stethoscope } from "lucide-react";
 import { FACILITIES } from "../constants";
 
 export default function FacilitiesSection() {
   const getIcon = (iconName: string, className: string) => {
+    if (!iconName) {
+      return <Stethoscope className={className} />;
+    }    
     switch (iconName) {
       case "Shield": return <Shield className={className} />;
       case "Activity": return <Activity className={className} />;
