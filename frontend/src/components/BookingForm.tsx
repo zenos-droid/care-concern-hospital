@@ -19,6 +19,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
   
   useEffect(() => {
     loadHospitalData().then((data) => {
+      console.log("API DATA:", data);
       setDepartments(data.departments);
       setDoctors(data.doctors);
     });
