@@ -2,11 +2,11 @@ import { DEPARTMENTS, DOCTORS, Department, Doctor } from "../constants";
 import { publicApi } from "./api";
 
 const mapDepartment = (department: any): Department => ({
-  id: department.slug,
-  name: department.name,
-  shortDesc: department.shortDesc,
-  fullDesc: department.fullDesc,
-  iconName: department?.iconName,
+  id: department.slug || department.id,
+  name: department.name || "Hospital Department",
+  shortDesc: department.shortDesc || "",
+  fullDesc: department.fullDesc || department.shortDesc || "",
+  iconName: department.iconName || "Stethoscope",
   features: department.features || []
 });
 
@@ -26,6 +26,12 @@ const mapDoctor = (doctor: any): Doctor => ({
 export async function loadHospitalData() {
   try {
     const [departments, doctors] = await Promise.all([publicApi.departments(), publicApi.doctors()]);
+    if (!departments.length || !doctors.length) {
+      return {
+        departments: DEPARTMENTS,
+        doctors: DOCTORS
+      };
+    }
     return {
       departments: departments.map(mapDepartment),
       doctors: doctors.map(mapDoctor)
@@ -37,4 +43,3 @@ export async function loadHospitalData() {
     };
   }
 }
-

@@ -10,8 +10,8 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
 
   useEffect(() => {
     loadHospitalData().then((data) => {
-      setDepartments(data.departments);
-      setDoctors(data.doctors);
+      setDepartments(data.departments.length ? data.departments : DEPARTMENTS);
+      setDoctors(data.doctors.length ? data.doctors : DOCTORS);
     });
   }, []);
 
@@ -32,14 +32,8 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
   };
 
   const selectedDeptObj = useMemo(() => {
-    if (!departments || departments.length === 0) {
-      return null;
-    }
-    return departments.find(d => d.id === activeDeptId) || departments?.[0];
+    return departments.find(d => d.id === activeDeptId) || departments[0] || DEPARTMENTS[0];
   }, [activeDeptId, departments]);
-  if (!selectedDeptObj){
-    return null;
-  } 
 
   // Doctors belonging to this department
   const filteredDocs = useMemo(() => {
