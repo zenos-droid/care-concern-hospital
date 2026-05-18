@@ -6,7 +6,7 @@ const mapDepartment = (department: any): Department => ({
   name: department.name,
   shortDesc: department.shortDesc,
   fullDesc: department.fullDesc,
-  iconName: department.iconName,
+  iconName: department?.iconName,
   features: department.features || []
 });
 

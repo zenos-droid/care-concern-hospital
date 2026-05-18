@@ -45,7 +45,7 @@ export default function FacilitiesSection() {
                 {/* Header Icon Indicator */}
                 <div className="flex justify-between items-start">
                   <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
-                    {getIcon(fac.iconName, "w-6 h-6")}
+                    {getIcon(fac?.iconName, "w-6 h-6")}
                   </div>
                   <span className="bg-slate-100 text-[10px] font-bold text-slate-400 px-2 py-1 rounded uppercase tracking-wider">
                      Triage-Approved
