@@ -11,6 +11,7 @@ export interface Department {
 
 export interface Doctor {
   id: string;
+  publicId?: string;
   name: string;
   specialty: string;
   deptId: string;
@@ -123,6 +124,7 @@ export const DEPARTMENTS: Department[] = [
 export const DOCTORS: Doctor[] = [
   {
     id: "doc-mukherjee",
+    publicId: "dr-s-k-mukherjee",
     name: "Dr. S. K. Mukherjee",
     specialty: "Senior Consultant Cardiologist",
     deptId: "cardio",
@@ -135,6 +137,7 @@ export const DOCTORS: Doctor[] = [
   },
   {
     id: "doc-sengupta",
+    publicId: "dr-anirban-sengupta",
     name: "Dr. Anirban Sengupta",
     specialty: "Senior Orthopedic & Joint Replace Surgeon",
     deptId: "ortho",
@@ -147,6 +150,7 @@ export const DOCTORS: Doctor[] = [
   },
   {
     id: "doc-banerjee",
+    publicId: "dr-priya-banerjee",
     name: "Dr. Priya Banerjee",
     specialty: "Consultant Pediatrician",
     deptId: "pedia",
@@ -159,6 +163,7 @@ export const DOCTORS: Doctor[] = [
   },
   {
     id: "doc-ray",
+    publicId: "dr-rupa-ray",
     name: "Dr. Rupa Ray",
     specialty: "Eminent Gynecologist & Laparoscopic Specialist",
     deptId: "gynae",
@@ -170,7 +175,8 @@ export const DOCTORS: Doctor[] = [
     imageDesc: "Warm professional female obstetrician sitting at clinical table explaining maternity care sheet with clear focus"
   },
   {
-    id: "doc-ghosh",
+    id: "doc-ghosh", 
+    publicId: "dr-amitabha-ghosh",
     name: "Dr. Amitabha Ghosh",
     specialty: "Consultant General Physician",
     deptId: "genmed",

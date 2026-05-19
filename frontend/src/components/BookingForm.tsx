@@ -84,7 +84,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
         patientName,
         patientPhone,
         patientAge: patientAge ? Number(patientAge) : undefined,
-        doctorPublicId: selectedDocId,
+        doctorPublicId: selectedDoctor?.publicId || selectedDocId,
         departmentSlug: selectedDept,
         scheduledDate: bookingDate || undefined,
         slot: bookingSlot || undefined,
