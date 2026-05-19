@@ -8,12 +8,12 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
   const [departments, setDepartments] = useState<Department[]>(DEPARTMENTS);
   const [doctors, setDoctors] = useState(DOCTORS);
 
-  // useEffect(() => {
-  //   loadHospitalData().then((data) => {
-  //     setDepartments(data.departments.length ? data.departments : DEPARTMENTS);
-  //     setDoctors(data.doctors.length ? data.doctors : DOCTORS);
-  //   });
-  // }, []);
+  useEffect(() => {
+    loadHospitalData().then((data) => {
+      setDepartments(data.departments.length ? data.departments : DEPARTMENTS);
+      setDoctors(data.doctors.length ? data.doctors : DOCTORS);
+    });
+  }, []);
 
   // Icon map to resolve dynamic key strings
   const getIcon = (iconName: string, className: string) => {
@@ -79,7 +79,7 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
                   className={`w-full text-left p-4 rounded-2xl transition-all border cursor-pointer duration-300 flex items-center gap-3.5 ${isActive ? "bg-white border-sky-500 shadow-xl pl-6 text-sky-950 scale-102" : "bg-white border-slate-150 shadow-sm hover:border-slate-300 hover:bg-slate-50 text-slate-700"}`}
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isActive ? "bg-sky-600 text-white" : "bg-sky-50 text-sky-600"}`}>
-                    {getIcon(dept?.iconName, "w-5.5 h-5.5")}
+                    {getIcon(dept?.iconName || "Stethoscope" , "w-5.5 h-5.5")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm md:text-base leading-tight truncate">{dept.name}</h4>
@@ -100,7 +100,7 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-sky-500 text-white rounded-2xl flex items-center justify-center mb-1">
-                  {getIcon(selectedDeptObj?.iconName, "w-6 h-6")}
+                  {getIcon(selectedDeptObj?.iconName || "Stethoscope", "w-6 h-6")}
                 </div>
                 <div>
                   <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 leading-none">
