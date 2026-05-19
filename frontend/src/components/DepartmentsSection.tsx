@@ -1,4 +1,3 @@
-import { Stethoscope } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { HeartPulse, Activity, CheckCircle2, Award, Stethoscope, Zap, ChevronRight, Check } from "lucide-react";
 import { DEPARTMENTS, DOCTORS, Department } from "../constants";
@@ -9,12 +8,12 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
   const [departments, setDepartments] = useState<Department[]>(DEPARTMENTS);
   const [doctors, setDoctors] = useState(DOCTORS);
 
-  useEffect(() => {
-    loadHospitalData().then((data) => {
-      setDepartments(data.departments.length ? data.departments : DEPARTMENTS);
-      setDoctors(data.doctors.length ? data.doctors : DOCTORS);
-    });
-  }, []);
+  // useEffect(() => {
+  //   loadHospitalData().then((data) => {
+  //     setDepartments(data.departments.length ? data.departments : DEPARTMENTS);
+  //     setDoctors(data.doctors.length ? data.doctors : DOCTORS);
+  //   });
+  // }, []);
 
   // Icon map to resolve dynamic key strings
   const getIcon = (iconName: string, className: string) => {
