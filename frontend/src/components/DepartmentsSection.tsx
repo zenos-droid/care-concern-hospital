@@ -1,3 +1,4 @@
+import { Stethoscope } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { HeartPulse, Activity, CheckCircle2, Award, Stethoscope, Zap, ChevronRight, Check } from "lucide-react";
 import { DEPARTMENTS, DOCTORS, Department } from "../constants";
@@ -32,8 +33,15 @@ export default function DepartmentsSection({ onSelectDept }: { onSelectDept: (de
   };
 
   const selectedDeptObj = useMemo(() => {
-    return departments.find(d => d.id === activeDeptId) || departments[0] || DEPARTMENTS[0];
+    return departments.find(d => d.id === activeDeptId) || departments[0] || null;
   }, [activeDeptId, departments]);
+  if (!selectedDeptObj) {
+  return (
+    <div className="p-10 text-center text-slate-500">
+      Loading departments...
+    </div>
+  );
+}
 
   // Doctors belonging to this department
   const filteredDocs = useMemo(() => {
