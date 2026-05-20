@@ -55,7 +55,12 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.error?.message || "Request failed");
+    console.log("FULL BACKEND ERROR:", payload);
+    throw new Error(
+      payload.error?.message ||
+      JSON.stringify(payload) ||
+      "Request failed"
+    );
   }
 
   return payload.data as T;
