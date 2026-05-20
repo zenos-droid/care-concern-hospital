@@ -44,6 +44,8 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
   // Handle department shift
   const handleDocChange = (docId: string) => {
     const realDoctor = doctors.find((d) => d.id === docId);
+    console.log("REAL DOCTOR ID:", realDoctor?.id);
+    console.log("REAL DOCTOR PUBLIC ID:", realDoctor?.publicId);
 
     setSelectedDocId(docId);
 
