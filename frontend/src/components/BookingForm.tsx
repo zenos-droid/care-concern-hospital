@@ -6,7 +6,8 @@ import { loadHospitalData } from "../services/hospitalData";
 
 export default function BookingForm({ initialDeptId, initialDocId }: { initialDeptId?: string; initialDocId?: string }) {
   const [selectedDept, setSelectedDept] = useState(initialDeptId || "");
-  const [selectedDocId, setSelectedDocId] = useState(initialDocId || "");
+  const [selectedDocId, setSelectedDocId] = useState(initialDocId ||"");
+  const [selectedDoctorUuid, setSelectedDoctorUuid] = useState("");
   const [bookingDate, setBookingDate] = useState("");
   const [bookingSlot, setBookingSlot] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -42,13 +43,11 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
 
   // Handle department shift
   const handleDocChange = (docId: string) => {
-    console.log("SELECTED RAW ID:", docId);
+    const realDoctor = doctors.find((d) => d.id === docId);
 
-    const realDoctor = doctors.find(d => d.id === docId);
+    setSelectedDocId(docId);
 
-    console.log("MATCHED REAL DOCTOR:", realDoctor);
-
-    setSelectedDocId(realDoctor?.publicId || "");
+    setSelectedDoctorUuid(realDoctor?.publicId || "");
 
     setBookingSlot("");
 
@@ -89,7 +88,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
         patientName,
         patientPhone,
         patientAge: patientAge ? Number(patientAge) : undefined,
-        doctorId: selectedDocId,  
+        doctorId: selectedDoctorUuid,  
         departmentSlug: selectedDept,
         scheduledDate: bookingDate || undefined,
         slot: bookingSlot || undefined,
