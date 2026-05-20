@@ -53,6 +53,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   const response = await fetch(`${API_URL}${path}`, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
+  console.log("API RESPONSE:", payload);
 
   if (!response.ok) {
     console.log("FULL BACKEND ERROR:", payload);
