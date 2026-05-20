@@ -57,6 +57,12 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
       setSelectedDept(realDoctor.deptId);
     }
   };
+  const handleDeptChange = (deptId: string) => {
+    setSelectedDept(deptId);
+    setSelectedDocId("");       // doctor reset karo jab dept badle
+    setSelectedDoctorUuid("");
+    setBookingSlot("");
+  };
 
 
   // Validate day of week against doctor's schedule
@@ -251,7 +257,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
               >
                 <option value="">-- Select Specialist Doctor --</option>
                 {filteredDoctors.map(doc => (
-                  <option key={doc.id} value={doc.id}>
+                  <option key={doc.id} value={doc.id}>  
                     {doc.name} - {doc.specialty} ({doc.degree})
                   </option>
                 ))}
