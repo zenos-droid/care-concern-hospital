@@ -85,6 +85,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
     try {
       console.log("SELECTED DOCTOR:", selectedDoctor);
       console.log("SELECTED DOC ID:", selectedDocId);
+      alert("DOCTOR ID = " + selectedDocId);
       console.log("FINAL PAYLOAD", {
         patientName,
         patientPhone,
