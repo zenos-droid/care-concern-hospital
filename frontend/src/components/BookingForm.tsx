@@ -80,11 +80,14 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
     setIsSubmitting(true);
     let appointment: any;
     try {
+      console.log("SELECTED DOCTOR:", selectedDoctor);
+      console.log("SELECTED DOC ID:", selectedDocId);
+      
       appointment = await appointmentApi.create({
         patientName,
         patientPhone,
         patientAge: patientAge ? Number(patientAge) : undefined,
-        doctorId: selectedDoctor?.id,
+        doctorId: selectedDoctor?.publicId || selectedDoctor?.id,
         departmentSlug: selectedDept,
         scheduledDate: bookingDate || undefined,
         slot: bookingSlot || undefined,
