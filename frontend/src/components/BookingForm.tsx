@@ -22,6 +22,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
       console.log("API DATA:", data);
       setDepartments(data.departments);
       setDoctors(data.doctors);
+      setSelectedDocId("");
     });
   }, []);
 
@@ -40,10 +41,20 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
   }, [doctors, selectedDocId]);
 
   // Handle department shift
-  const handleDeptChange = (deptId: string) => {
-    setSelectedDept(deptId);
-    setSelectedDocId(""); // Reset doctor selection
-    setBookingSlot("");   // Reset slot choice
+  const handleDocChange = (docId: string) => {
+    console.log("SELECTED RAW ID:", docId);
+
+    const realDoctor = doctors.find(d => d.id === docId);
+
+    console.log("MATCHED REAL DOCTOR:", realDoctor);
+
+    setSelectedDocId(realDoctor?.id || "");
+
+    setBookingSlot("");
+
+    if (realDoctor && realDoctor.deptId !== selectedDept) {
+      setSelectedDept(realDoctor.deptId);
+    }
   };
 
   // Handle doctor shift - auto syncs department
