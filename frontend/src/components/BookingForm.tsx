@@ -85,6 +85,16 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
     try {
       console.log("SELECTED DOCTOR:", selectedDoctor);
       console.log("SELECTED DOC ID:", selectedDocId);
+      console.log("FINAL PAYLOAD", {
+        patientName,
+        patientPhone,
+        patientAge,
+        doctorId: selectedDocId,
+        departmentSlug: selectedDept,
+        scheduledDate: bookingDate,
+        slot: bookingSlot,
+        symptoms
+      });
 
       appointment = await appointmentApi.create({
         patientName,
