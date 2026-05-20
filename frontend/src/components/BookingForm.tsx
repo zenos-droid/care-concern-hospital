@@ -48,7 +48,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
 
     console.log("MATCHED REAL DOCTOR:", realDoctor);
 
-    setSelectedDocId(realDoctor?.id || "");
+    setSelectedDocId(realDoctor?.publicId || "");
 
     setBookingSlot("");
 

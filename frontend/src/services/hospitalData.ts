@@ -11,8 +11,8 @@ const mapDepartment = (department: any): Department => ({
 });
 
 const mapDoctor = (doctor: any): Doctor => ({
-  id: doctor.id,
-  publicId: doctor.publicId,
+  id: doctor.publicId,
+  publicId: doctor.id,
   name: doctor.fullName,
   specialty: doctor.specialty,
   deptId: doctor.department?.slug || "",
