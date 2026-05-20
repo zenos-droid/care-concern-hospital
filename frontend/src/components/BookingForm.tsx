@@ -59,11 +59,13 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
 
   // Handle doctor shift - auto syncs department
   const handleDocChange = (docId: string) => {
-    setSelectedDocId(docId);
-    setBookingSlot(""); // Reset slot
-    const doc = doctors.find(d => d.id === docId);
-    if (doc && doc.deptId !== selectedDept) {
-      setSelectedDept(doc.deptId);
+    console.log("SELECTED RAW ID:", docId);
+    const realDoctor = doctors.find((d) => d.id === docId);
+    console.log("MATCHED REAL DOCTOR:", realDoctor);
+    setSelectedDocId(realDoctor?.id || "");
+    setBookingSlot("");
+    if (realDoctor && realDoctor.deptId !== selectedDept) {
+      setSelectedDept(realDoctor.deptId);
     }
   };
 
