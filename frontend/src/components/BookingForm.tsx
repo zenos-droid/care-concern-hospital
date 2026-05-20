@@ -57,17 +57,6 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
     }
   };
 
-  // Handle doctor shift - auto syncs department
-  const handleDocChange = (docId: string) => {
-    console.log("SELECTED RAW ID:", docId);
-    const realDoctor = doctors.find((d) => d.id === docId);
-    console.log("MATCHED REAL DOCTOR:", realDoctor);
-    setSelectedDocId(realDoctor?.id || "");
-    setBookingSlot("");
-    if (realDoctor && realDoctor.deptId !== selectedDept) {
-      setSelectedDept(realDoctor.deptId);
-    }
-  };
 
   // Validate day of week against doctor's schedule
   const dateValidationWarning = useMemo(() => {
@@ -100,7 +89,7 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
         patientName,
         patientPhone,
         patientAge: patientAge ? Number(patientAge) : undefined,
-        doctorId: selectedDoctor?.id,
+        doctorId: selectedDoctor,
         departmentSlug: selectedDept,
         scheduledDate: bookingDate || undefined,
         slot: bookingSlot || undefined,
