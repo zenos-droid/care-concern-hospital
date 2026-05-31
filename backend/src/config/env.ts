@@ -27,7 +27,9 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional().default(""),
   SMTP_PASS: z.string().optional().default(""),
   MAIL_FROM: z.string().default("Care Concern Hospital <noreply@careconcern.in>"),
-  ENABLE_EMAIL_DELIVERY: z.coerce.boolean().default(false)
+  ENABLE_EMAIL_DELIVERY: z.coerce.boolean().default(false),
+  RAZORPAY_KEY_ID: z.string().optional().default(""),
+  RAZORPAY_KEY_SECRET: z.string().optional().default("")
 });
 
 export const env = envSchema.parse(process.env);

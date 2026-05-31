@@ -1,4 +1,4 @@
-import { AppointmentStatus } from "@prisma/client";
+import { AppointmentStatus, PaymentStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import { prisma } from "../config/prisma";
 
@@ -6,7 +6,7 @@ export class DashboardService {
   async admin() {
     const todayStart = dayjs().startOf("day").toDate();
     const todayEnd = dayjs().endOf("day").toDate();
-    const [totalPatients, totalAppointments, todaysAppointments, doctorAnalytics] = await Promise.all([
+    const [totalPatients, totalAppointments, todaysAppointments, doctorAnalytics, paidPayments, failedPayments, refunds] = await Promise.all([
       prisma.patient.count(),
       prisma.appointment.count(),
       prisma.appointment.count({ where: { scheduledDate: { gte: todayStart, lte: todayEnd } } }),
@@ -16,9 +16,18 @@ export class DashboardService {
           _count: { select: { appointments: true, medicalRecords: true } }
         },
         orderBy: { fullName: "asc" }
-      })
+      }),
+      prisma.payment.findMany({ where: { status: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED] } }, include: { appointment: { include: { department: true, doctor: true } } } }),
+      prisma.payment.count({ where: { status: PaymentStatus.FAILED } }),
+      prisma.refund.findMany({ orderBy: { createdAt: "desc" }, take: 10 })
     ]);
-    return { totalPatients, totalAppointments, todaysAppointments, doctorAnalytics };
+    const revenue = paidPayments.reduce((sum, payment) => sum + payment.amount, 0);
+    const departmentRevenue = paidPayments.reduce<Record<string, number>>((acc, payment) => {
+      const key = payment.appointment?.department?.name ?? "Unassigned";
+      acc[key] = (acc[key] ?? 0) + payment.amount;
+      return acc;
+    }, {});
+    return { totalPatients, totalAppointments, todaysAppointments, doctorAnalytics, revenue, failedPayments, refunds, departmentRevenue };
   }
 
   async doctor(doctorId: string) {
@@ -44,12 +53,13 @@ export class DashboardService {
   }
 
   async patient(patientId: string) {
-    const [upcoming, records, notifications] = await Promise.all([
+    const [upcoming, records, notifications, payments] = await Promise.all([
       prisma.appointment.findMany({ where: { patientId, scheduledDate: { gte: dayjs().startOf("day").toDate() } }, include: { doctor: true, department: true }, orderBy: { scheduledDate: "asc" } }),
       prisma.medicalRecord.findMany({ where: { patientId }, include: { doctor: true }, orderBy: { createdAt: "desc" }, take: 10 }),
-      prisma.notification.findMany({ where: { user: { patient: { id: patientId } } }, orderBy: { createdAt: "desc" }, take: 10 })
+      prisma.notification.findMany({ where: { user: { patient: { id: patientId } } }, orderBy: { createdAt: "desc" }, take: 10 }),
+      prisma.payment.findMany({ where: { patientId }, include: { appointment: { include: { doctor: true, department: true } }, refunds: true }, orderBy: { createdAt: "desc" }, take: 20 })
     ]);
-    return { upcoming, records, notifications };
+    return { upcoming, records, notifications, payments };
   }
 }
 

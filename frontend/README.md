@@ -1,20 +1,37 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Care Concern Hospital Frontend
 
-# Run and deploy your AI Studio app
+React + Vite frontend for the Care Concern Hospital appointment platform.
 
-This contains everything you need to run your app locally.
+## Local Setup
 
-View your app in AI Studio: https://ai.studio/apps/08fd82b9-280e-4be6-b77c-c8af10cb4118
+```bash
+npm install
+npm run dev
+```
 
-## Run Locally
+## Environment Variables
 
-**Prerequisites:**  Node.js
+```text
+VITE_API_URL=http://localhost:4000
+VITE_RAZORPAY_KEY_ID=rzp_test_or_live_key
+GEMINI_API_KEY=optional_chatbot_key
+```
 
+## Payment Flow
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+The booking form creates a Razorpay order through the backend, opens Razorpay Checkout, and sends the Razorpay signature payload back to the backend verification endpoint. The appointment ticket is shown only after the backend verifies the signature and creates the appointment.
+
+Verified bookings expose print-ready pages:
+
+- Appointment ticket: `/api/v1/payments/:id/ticket`
+- Payment receipt: `/api/v1/payments/:id/receipt`
+
+## Deployment
+
+Use Vercel or any static host that supports Vite builds.
+
+```bash
+npm run build
+```
+
+Set `VITE_API_URL` to the deployed backend URL and `VITE_RAZORPAY_KEY_ID` to the matching Razorpay public key.

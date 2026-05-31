@@ -1,5 +1,6 @@
 import { PrismaClient, Role } from "@prisma/client";
 import { hashPassword } from "../src/utils/password";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,21 @@ const doctors = [
   { publicId: "dr-rupa-ray", slug: "gynae", fullName: "Dr. Rupa Ray", specialty: "Eminent Gynecologist & Laparoscopic Specialist", degree: "MS (OBG), MRCOG (London)", experienceYears: 19, chamberTimings: "Mon to Fri (10:00 AM - 1:00 PM)", availableDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], slots: ["10:00 AM", "11:00 AM", "12:00 PM"], roomNumber: "Room 104" },
   { publicId: "dr-amitabha-ghosh", slug: "genmed", fullName: "Dr. Amitabha Ghosh", specialty: "Consultant General Physician", degree: "MD (General Medicine), MRCP (Ireland)", experienceYears: 20, chamberTimings: "Mon to Sat (1:00 PM - 4:00 PM)", availableDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], slots: ["01:00 PM", "02:00 PM", "03:00 PM"], roomNumber: "Room 105" }
 ];
+
+const hashedPassword = await bcrypt.hash("Admin@123", 10);
+
+await prisma.user.upsert({
+  where: {
+    email: "admin@careconcern.com"
+  },
+  update: {},
+  create: {
+    fullName: "Main Admin",
+    email: "admin@careconcern.com",
+    passwordHash: hashedPassword,
+    role: "ADMIN"
+  }
+});
 
 async function main() {
   const passwordHash = await hashPassword("CareConcern@123");

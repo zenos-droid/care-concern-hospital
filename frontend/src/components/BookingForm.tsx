@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect, FormEvent } from "react";
 import { Calendar, Clock, User, Phone, CheckCircle2, ArrowRight, Printer, Shield, MapPin } from "lucide-react";
 import { DEPARTMENTS, DOCTORS } from "../constants";
-import { appointmentApi } from "../services/api";
+import { paymentApi } from "../services/api";
 import { loadHospitalData } from "../services/hospitalData";
+
 
 export default function BookingForm({ initialDeptId, initialDocId }: { initialDeptId?: string; initialDocId?: string }) {
   const [selectedDept, setSelectedDept] = useState(initialDeptId || "");
   const [selectedDocId, setSelectedDocId] = useState(initialDocId ||"");
-  const [selectedDoctorUuid, setSelectedDoctorUuid] = useState("");
   const [bookingDate, setBookingDate] = useState("");
   const [bookingSlot, setBookingSlot] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -43,14 +43,9 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
 
   // Handle department shift
   const handleDocChange = (docId: string) => {
-    const realDoctor = doctors.find((d) => d.publicId === docId);
-    console.log("REAL DOCTOR ID:", realDoctor?.id);
-    console.log("REAL DOCTOR PUBLIC ID:", realDoctor?.publicId);
+    const realDoctor = doctors.find((d) => d.id === docId || d.publicId === docId);
 
     setSelectedDocId(docId);
-
-    setSelectedDoctorUuid(realDoctor?.id || "");
-
     setBookingSlot("");
 
     if (realDoctor && realDoctor.deptId !== selectedDept) {
@@ -60,7 +55,6 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
   const handleDeptChange = (deptId: string) => {
     setSelectedDept(deptId);
     setSelectedDocId("");       // doctor reset karo jab dept badle
-    setSelectedDoctorUuid("");
     setBookingSlot("");
   };
 
@@ -87,61 +81,82 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
       return;
     }
     setIsSubmitting(true);
-    let appointment: any;
     try {
-      console.log("SELECTED DOCTOR:", selectedDoctor);
-      console.log("SELECTED DOC ID:", selectedDocId);
-      alert("DOCTOR ID = " + selectedDocId);
-      console.log("FINAL PAYLOAD", {
-        patientName,
-        patientPhone,
-        patientAge,
-        doctorId: selectedDocId,
-        departmentSlug: selectedDept,
-        scheduledDate: bookingDate,
-        slot: bookingSlot,
-        symptoms
-      });
-
-      appointment = await appointmentApi.create({
+      const appointmentDraft = {
         patientName,
         patientPhone,
         patientAge: patientAge ? Number(patientAge) : undefined,
-        doctorId: selectedDocId,  
+        doctorId: selectedDocId,
         departmentSlug: selectedDept,
         scheduledDate: bookingDate || undefined,
         slot: bookingSlot || undefined,
         symptoms
+      };
+      const order = await paymentApi.createOrder(1, appointmentDraft);
+
+      const options = { 
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+
+        name: "Care Concern Hospital",
+        description: "Appointment Reservation Charge",
+
+        profile: {
+          name: patientName,
+          contact: patientPhone
+        },
+
+        handler: async function(response: any) {
+          try {
+            const payment = await paymentApi.verify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            const appointment = payment.appointment;
+            const matchedDoc = doctors.find(d => d.id === appointment.doctorId);
+            const matchedDept = departments.find(dep => dep.id === (matchedDoc?.deptId || selectedDept));
+            setTicketData({
+              paymentId: payment.id,
+              receiptNumber: payment.receiptNumber,
+              ticketId: appointment.ticketNumber,
+              patientName,
+              patientPhone,
+              patientAge: patientAge || "N/A",
+              doctorName: appointment.doctor?.fullName || matchedDoc?.name || "Senior Duty Physician",
+              doctorDegree: matchedDoc?.degree || "",
+              doctorSpecialty: matchedDoc?.specialty || "",
+              department: appointment.department?.name || matchedDept?.name || "General Outpatient (OPD)",
+              date: new Date(appointment.scheduledDate).toLocaleDateString(),
+              slot: appointment.slot,
+              chamber: appointment.doctor?.roomNumber || "Room assigned at reception, First Floor, Clinical Block",
+              registrationFee: `INR ${payment.amount} paid online`,
+              consultationFee: `INR ${appointment.doctor?.consultationFee || 400} (clinic counter if applicable)`,
+              paymentStatus: payment.status,
+              timestamp: new Date(payment.paidAt || payment.createdAt).toLocaleString()
+            });
+          } catch (err) {
+            alert(err instanceof Error ? err.message : "Payment verification failed.");
+          } finally {
+            setIsSubmitting(false);
+          }
+        }
+
+      };
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.on("payment.failed", () => {
+        setIsSubmitting(false);
+        alert("Payment failed or was cancelled. No appointment was created.");
       });
+      razorpay.open();
+      return; 
     } catch (err) {
       alert(err instanceof Error ? err.message : "Appointment booking failed.");
       setIsSubmitting(false);
       return;
     }
-    setIsSubmitting(false);
-
-
-    const matchedDoc = doctors.find(d => d.id === selectedDocId);
-    const matchedDept = departments.find(dep => dep.id === (matchedDoc?.deptId || selectedDept));
-    
-    const mockTicket = {
-      ticketId: appointment.ticketNumber,
-      patientName,
-      patientPhone,
-      patientAge: patientAge || "N/A",
-      doctorName: matchedDoc?.name || "Senior Duty Physician",
-      doctorDegree: matchedDoc?.degree || "",
-      doctorSpecialty: matchedDoc?.specialty || "",
-      department: matchedDept?.name || "General Outpatient (OPD)",
-      date: new Date(appointment.scheduledDate).toLocaleDateString(),
-      slot: appointment.slot,
-      chamber: appointment.doctor?.roomNumber || "Room assigned at reception, First Floor, Clinical Block",
-      registrationFee: "₹0 (Online Booking Offer Saved ₹200)",
-      consultationFee: `₹${appointment.doctor?.consultationFee || 400} (To be settled in clinic counter)`,
-      timestamp: new Date().toLocaleString()
-    };
-
-    setTicketData(mockTicket);
   };
 
   const resetForm = () => {
@@ -418,6 +433,14 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
                     <span className="text-slate-500">Online Slot Booking Registration Charge:</span>
                     <span className="text-emerald-600 font-bold">{ticketData.registrationFee}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Payment Status:</span>
+                    <span className="text-emerald-700 font-bold">{ticketData.paymentStatus}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Receipt:</span>
+                    <span className="font-mono text-slate-900 font-bold">{ticketData.receiptNumber}</span>
+                  </div>
                   <div className="flex justify-between border-t border-slate-100 pt-2 font-bold text-sm">
                     <span className="text-slate-700">Estimated Specialist OPD Fee (At Venue):</span>
                     <span className="text-slate-900">{ticketData.consultationFee}</span>
@@ -436,11 +459,19 @@ export default function BookingForm({ initialDeptId, initialDocId }: { initialDe
                 <div className="flex gap-2.5 pt-2">
                   <button
                     onClick={() => {
-                      window.print();
+                      window.open(paymentApi.ticketUrl(ticketData.paymentId), "_blank", "noopener,noreferrer");
                     }}
                     className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-slate-200 cursor-pointer"
                   >
-                    <Printer className="w-4 h-4" /> Print Ticket
+                    <Printer className="w-4 h-4" /> Ticket PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.open(paymentApi.receiptUrl(ticketData.paymentId), "_blank", "noopener,noreferrer");
+                    }}
+                    className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 px-4 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-emerald-100 cursor-pointer"
+                  >
+                    Receipt
                   </button>
                   <button
                     onClick={resetForm}

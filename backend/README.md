@@ -5,13 +5,15 @@ Production-ready Express + TypeScript + PostgreSQL API for the Care Concern Hosp
 ## API Surface
 
 - Public hospital data: departments, doctors, chatbot helper
-- Public appointment booking for the existing frontend ticket flow
+- Razorpay order creation with server-side signature verification before appointment creation
+- Payment history, printable ticket pages, printable receipt pages, and admin revenue analytics
 - JWT auth: signup, login, logout, refresh, forgot password, reset password
 - RBAC: Admin, Doctor, Receptionist, Patient
 - Appointment lifecycle: create, update, cancel, approve, check-in, queue
 - Dashboards: admin, doctor, reception, patient
 - Patients and medical records
 - Notifications, audit logs, local upload storage with cloud-ready adapter boundary
+- Refund tracking and structured payment/refund audit events
 - Swagger docs at `/api-docs`
 
 ## Setup Commands
@@ -125,31 +127,32 @@ SMTP_USER=...
 SMTP_PASS=...
 MAIL_FROM=Care Concern Hospital <noreply@careconcern.in>
 ENABLE_EMAIL_DELIVERY=true
+RAZORPAY_KEY_ID=rzp_live_or_test_key
+RAZORPAY_KEY_SECRET=razorpay_secret
 ```
 
-## Frontend Integration Notes
+## Payment Setup Guide
 
-Replace the frontend mock booking submit with:
+1. Create a Razorpay account and switch to live mode only after webhook and signature tests pass.
+2. Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` only on the backend.
+3. Set `VITE_RAZORPAY_KEY_ID` on the frontend. Do not expose the key secret.
+4. The frontend creates `/api/v1/payments/create-order`, opens Razorpay Checkout, then sends `razorpay_order_id`, `razorpay_payment_id`, and `razorpay_signature` to `/api/v1/payments/verify`.
+5. The backend verifies the HMAC signature and creates the appointment only after verification succeeds.
 
-```ts
-await fetch(`${import.meta.env.VITE_API_URL}/api/v1/public/appointments`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    patientName,
-    patientPhone,
-    patientAge: patientAge ? Number(patientAge) : undefined,
-    doctorPublicId: selectedDocId,
-    departmentSlug: selectedDept,
-    scheduledDate: bookingDate,
-    slot: bookingSlot,
-    symptoms
-  })
-});
-```
+## Ticket and Receipt Pages
+
+After a verified payment:
+
+- Ticket: `/api/v1/payments/:id/ticket`
+- Receipt: `/api/v1/payments/:id/receipt`
+
+Both pages are print-ready and can be saved as PDF from the browser print dialog.
+
+## Frontend Environment
 
 Set:
 
 ```text
 VITE_API_URL=http://localhost:4000
+VITE_RAZORPAY_KEY_ID=rzp_test_or_live_key
 ```

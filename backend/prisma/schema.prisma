@@ -27,6 +27,7 @@ enum AppointmentStatus {
 enum NotificationChannel {
   EMAIL
   SMS
+  WHATSAPP
   IN_APP
 }
 
@@ -47,6 +48,30 @@ enum AuditAction {
   APPROVE
   CANCEL
   CHECK_IN
+  PAYMENT
+  REFUND
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  CASH
+  CARD
+  UPI
+}
+
+enum RefundStatus {
+  REQUESTED
+  PROCESSING
+  PROCESSED
+  FAILED
 }
 
 model User {
@@ -87,6 +112,7 @@ model Patient {
   user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
+  payments       Payment[]
 
   @@index([phone])
   @@index([fullName])
@@ -157,10 +183,58 @@ model Appointment {
   doctor          Doctor            @relation(fields: [doctorId], references: [id])
   department      Department        @relation(fields: [departmentId], references: [id])
   medicalRecord   MedicalRecord?
+  payments        Payment[]
+  refunds         Refund[]
 
   @@index([patientId])
   @@index([scheduledDate, status])
   @@index([doctorId, scheduledDate])
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  appointmentId     String?
+  patientId         String
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  method            PaymentMethod @default(RAZORPAY)
+  providerOrderId   String        @unique
+  providerPaymentId String?       @unique
+  providerSignature String?
+  receiptNumber     String        @unique
+  notes             Json?
+  paidAt            DateTime?
+  failedAt          DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  appointment       Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  patient           Patient       @relation(fields: [patientId], references: [id])
+  refunds           Refund[]
+
+  @@index([patientId, createdAt])
+  @@index([appointmentId])
+  @@index([status, createdAt])
+}
+
+model Refund {
+  id               String       @id @default(uuid())
+  paymentId        String
+  appointmentId    String?
+  amount           Int
+  status           RefundStatus @default(REQUESTED)
+  reason           String
+  providerRefundId String?      @unique
+  processedAt      DateTime?
+  createdById      String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  payment          Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  appointment      Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@index([appointmentId])
+  @@index([status, createdAt])
 }
 
 model MedicalRecord {

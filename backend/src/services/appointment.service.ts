@@ -1,4 +1,4 @@
-import { AppointmentStatus, AuditAction, Role } from "@prisma/client";
+import { AppointmentStatus, AuditAction, Prisma, Role } from "@prisma/client";
 import dayjs from "dayjs";
 import { Request } from "express";
 import { prisma } from "../config/prisma";
@@ -8,11 +8,28 @@ import { generatePatientCode, generateTicketNumber } from "../utils/crypto";
 import { notificationService } from "./notification.service";
 
 const appointmentInclude = { patient: true, doctor: { include: { department: true } }, department: true };
+type AppointmentBookingInput = {
+  patientName: string;
+  patientPhone: string;
+  patientAge?: number;
+  patientEmail?: string;
+  doctorId?: string;
+  doctorPublicId?: string;
+  scheduledDate?: string | Date;
+  slot?: string;
+  symptoms?: string;
+};
 
 export class AppointmentService {
   async create(req: Request) {
-    const body = req.body;
-    const doctor = await prisma.doctor.findFirst({
+    const appointment = await this.createFromBooking(req.body, req.user?.id);
+    await writeAuditLog(req, AuditAction.CREATE, "Appointment", appointment.id);
+    await notificationService.appointmentBooked(appointment.patient.email ?? appointment.patient.phone, appointment.ticketNumber, appointment.patient.userId ?? undefined);
+    return appointment;
+  }
+
+  async createFromBooking(body: AppointmentBookingInput, createdById?: string, client: Prisma.TransactionClient | typeof prisma = prisma) {
+    const doctor = await client.doctor.findFirst({
       where: { OR: [{ id: body.doctorId }, { publicId: body.doctorPublicId }], isActive: true },
       include: { department: true }
     });
@@ -23,18 +40,18 @@ export class AppointmentService {
     const slot = body.slot || doctor.slots[0] || "General OPD Hours";
     if (body.slot && !doctor.slots.includes(body.slot)) throw badRequest("Selected slot is not available for this doctor");
 
-    const patient = await prisma.patient.upsert({
+    const patient = await client.patient.upsert({
       where: { patientCode: `PHONE-${body.patientPhone}` },
       update: { fullName: body.patientName, phone: body.patientPhone, email: body.patientEmail, age: body.patientAge },
       create: { patientCode: `PHONE-${body.patientPhone}`, fullName: body.patientName, phone: body.patientPhone, email: body.patientEmail, age: body.patientAge }
     });
 
-    const taken = await prisma.appointment.findFirst({
+    const taken = await client.appointment.findFirst({
       where: { doctorId: doctor.id, scheduledDate, slot, status: { notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW] } }
     });
     if (taken) throw conflict("This appointment slot has already been reserved");
 
-    const appointment = await prisma.appointment.create({
+    return client.appointment.create({
       data: {
         ticketNumber: generateTicketNumber(),
         patientId: patient.id,
@@ -43,14 +60,10 @@ export class AppointmentService {
         scheduledDate,
         slot,
         symptoms: body.symptoms,
-        createdById: req.user?.id
+        createdById
       },
       include: appointmentInclude
     });
-
-    await writeAuditLog(req, AuditAction.CREATE, "Appointment", appointment.id);
-    await notificationService.appointmentBooked(patient.email ?? patient.phone, appointment.ticketNumber, patient.userId ?? undefined);
-    return appointment;
   }
 
   list(req: Request) {
@@ -101,6 +114,7 @@ export class AppointmentService {
       include: appointmentInclude
     });
     await writeAuditLog(req, AuditAction.CANCEL, "Appointment", appointment.id, { reason: req.body.reason });
+    await notificationService.appointmentCancelled(appointment.patient.email ?? appointment.patient.phone, appointment.ticketNumber, appointment.patient.userId ?? undefined);
     return appointment;
   }
 

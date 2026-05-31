@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, CalendarCheck, CheckCircle2, ClipboardList, LogOut, RefreshCw, Search, Shield, Stethoscope, UserCheck, Users, XCircle } from "lucide-react";
-import { appointmentApi, authApi, AuthUser, clearSession, dashboardApi } from "../services/api";
+import { appointmentApi, authApi, AuthUser, clearSession, dashboardApi, paymentApi } from "../services/api";
 
 type DashboardData = any;
 
@@ -108,7 +108,7 @@ function StatsGrid({ user, data }: { user: AuthUser; data: DashboardData }) {
     ? [
       ["Total Patients", data?.totalPatients ?? 0, Users],
       ["Total Appointments", data?.totalAppointments ?? 0, CalendarCheck],
-      ["Today's Appointments", data?.todaysAppointments ?? 0, Activity],
+      ["Revenue", `INR ${data?.revenue ?? 0}`, Activity],
       ["Doctors", data?.doctorAnalytics?.length ?? 0, Stethoscope]
     ]
     : user.role === "DOCTOR"
@@ -172,6 +172,9 @@ function RoleDetails({
             </div>
           ))}
         </Panel>
+        <Panel title="Payment History">
+          <PaymentList items={data?.payments ?? []} />
+        </Panel>
       </div>
     );
   }
@@ -231,6 +234,20 @@ function RoleDetails({
             <AppointmentList items={data?.todaysAppointments ?? data?.upcoming ?? []} />
           )}
         </Panel>
+        {user.role === "ADMIN" && (
+          <Panel title="Revenue Overview">
+            <div className="text-xs bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+              <p className="font-black text-emerald-900">INR {data?.revenue ?? 0}</p>
+              <p className="text-emerald-700 mt-1">Failed payments: {data?.failedPayments ?? 0}</p>
+            </div>
+            {Object.entries(data?.departmentRevenue ?? {}).map(([department, amount]) => (
+              <div key={department} className="flex justify-between border border-slate-150 rounded-xl p-3 text-xs">
+                <span className="font-bold text-slate-700">{department}</span>
+                <span className="font-black text-slate-900">INR {String(amount)}</span>
+              </div>
+            ))}
+          </Panel>
+        )}
       </div>
     </div>
   );
@@ -256,6 +273,29 @@ function AppointmentList({ items }: { items: any[] }) {
           <p className="font-black text-slate-900">{appointment.ticketNumber || appointment.patient?.fullName || "Appointment"}</p>
           <p className="text-slate-500 mt-1">{appointment.doctor?.fullName} · {appointment.slot}</p>
           <p className="text-sky-700 font-bold mt-1">{appointment.status}</p>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function PaymentList({ items }: { items: any[] }) {
+  if (!items.length) return <Empty />;
+  return (
+    <>
+      {items.map((payment) => (
+        <div key={payment.id} className="border border-slate-150 rounded-xl p-3 text-xs">
+          <div className="flex justify-between gap-3">
+            <div>
+              <p className="font-black text-slate-900">INR {payment.amount} - {payment.status}</p>
+              <p className="text-slate-500 mt-1">{payment.appointment?.doctor?.fullName || "Appointment payment"}</p>
+              <p className="font-mono text-sky-700 mt-1">{payment.receiptNumber}</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <button onClick={() => window.open(paymentApi.ticketUrl(payment.id), "_blank", "noopener,noreferrer")} className="bg-sky-50 text-sky-700 rounded-lg px-3 py-2 font-black">Ticket</button>
+              <button onClick={() => window.open(paymentApi.receiptUrl(payment.id), "_blank", "noopener,noreferrer")} className="bg-emerald-50 text-emerald-700 rounded-lg px-3 py-2 font-black">Receipt</button>
+            </div>
+          </div>
         </div>
       ))}
     </>

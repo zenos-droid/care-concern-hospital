@@ -113,3 +113,21 @@ export const publicApi = {
   doctors: () => apiFetch<any[]>("/api/v1/public/doctors", { auth: false })
 };
 
+export const paymentApi = {
+  createOrder: (amount: number, appointment: unknown) =>
+    apiFetch<any>("/api/v1/payments/create-order", {
+      method: "POST",
+      auth: false,
+      body: JSON.stringify({ amount, appointment })
+    }),
+  verify: (body: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
+    apiFetch<any>("/api/v1/payments/verify", {
+      method: "POST",
+      auth: false,
+      body: JSON.stringify(body)
+    }),
+  list: () => apiFetch<any[]>("/api/v1/payments"),
+  analytics: () => apiFetch<any>("/api/v1/payments/analytics"),
+  ticketUrl: (id: string) => `${API_URL}/api/v1/payments/${id}/ticket`,
+  receiptUrl: (id: string) => `${API_URL}/api/v1/payments/${id}/receipt`
+};
